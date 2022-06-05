@@ -1,7 +1,7 @@
 module Library where
 import PdePreludat
 import Data.Char(toUpper)  --para poder usar la conversion de mayusculas en el punto 2) 
-
+import Data.Char(isUpper) --para poder usar punto 3) nos dice si una letra es mayuscula
 
 type Objetos= Barbaro->Barbaro
 
@@ -91,8 +91,7 @@ tienePulgares "Faffy" = False
 tienePulgares "Astro"= False 
 tienePulgares _= True  
 
-ritualDeFechorias::Evento
-ritualDeFechorias prueba barbarian = prueba==True 
+
 
 saqueo:: Barbaro->Bool
 saqueo barbarian = elem "robar" (habilidades barbarian) && fuerza barbarian >= 80
@@ -122,6 +121,84 @@ poderGritoDeGuerra barbarian = (*4).length.objetos $ barbarian
 cantLetrasHabilidades:: Barbaro -> Number
 cantLetrasHabilidades   =  sum.map length.habilidades 
 
+caligrafia :: Evento
+caligrafia barbarian= all tieneMasDe3VocalesYEmpiezaConMayuscula (habilidades barbarian)
 
 
---4)---------------------------------------------------------------------------------------
+tieneMasDe3VocalesYEmpiezaConMayuscula :: String->Bool
+tieneMasDe3VocalesYEmpiezaConMayuscula habilidad= tieneMasDe3Vocales habilidad && empiezaConMayuscula habilidad 
+
+tieneMasDe3Vocales :: String -> Bool 
+tieneMasDe3Vocales habilidad = (>3).length.filter esVocal $ habilidad 
+
+--Por pattern matching: 
+esVocal :: Char->Bool
+esVocal 'a'= True 
+esVocal 'e'= True
+esVocal 'i'= True
+esVocal 'o'= True
+esVocal 'u'= True
+esVocal  _ = False
+
+empiezaConMayuscula :: String -> Bool 
+empiezaConMayuscula= isUpper.head --Con aplicacion parcial 
+--empiezaConMayuscula habilidad = isUpper.head $ habilidad  //peor version porque repite logica 
+
+
+--Esta es una forma de hacerlo pero no respeta la consigna porque nos dice que no repitamos logica, y aca estamos repitiendo la logica de lambda:
+--ritualDeFechorias::[Evento]-> Evento 
+--ritualDeFechorias eventos barbarian = any (\evento-> evento barbarian) eventos
+--sobrevivientes :: [Barbaro]->Aventura->[Barbaro]  
+--sobrevivientes barbarians aventura= filter(\barbarian -> all (\evento-> evento barbarian) aventura) barbarians
+
+
+--Recibe una lista de eventos xq esta recibiendo varias pruebas y devuelve un Evento xq alfin y al cabo 
+--devuelve un barbaro si pasa alguna de las pruebas o no. 
+ritualDeFechorias::[Evento]-> Evento 
+ritualDeFechorias eventos barbarian = pasaUnaAventura any barbarian eventos
+
+sobrevivientes :: [Barbaro]->Aventura->[Barbaro]  --devuelve una lista de brbaros q van a ser los que van a terminar pasando esa aventura
+sobrevivientes barbarians aventura= filter(\barbarian -> pasaUnaAventura all barbarian aventura) barbarians
+
+pasaUnaAventura criterio barbarian aventura= criterio (\evento-> evento barbarian) aventura
+
+--4)---------------------------------------------------------------------------------------------
+
+--a)
+sinRepetidos :: (Eq a)=> [a]->[a]
+sinRepetidos []=[]
+sinRepetidos (cabeza:cola)
+    |elem cabeza cola =cola  --si cabeza esta dentro de la cola => solo dejo la cola, para no volver a incluir la cabeza q esta repetida dentro de cola
+    |otherwise = (cabeza:cola) -- si cabeza No esta dentro de la cola, la incluyo en la cola 
+
+--b)
+
+-- accessors --
+mapNombre :: (String -> String) -> Barbaro -> Barbaro
+mapNombre f unBarbaro = unBarbaro { nombre = f . nombre $ unBarbaro }
+
+mapHabilidades :: ([String] -> [String]) -> Barbaro -> Barbaro
+mapHabilidades f unBarbaro = unBarbaro { habilidades = f . habilidades $ unBarbaro }
+
+
+descendiente :: Barbaro-> Barbaro
+descendiente= utilizarObjetos.mapNombre(++ "*").mapHabilidades sinRepetidos 
+
+utilizarObjetos :: Barbaro -> Barbaro 
+utilizarObjetos barbarian= foldr ($) barbarian (objetos barbarian) --hay muchas maneras de hacer este punto, podria ser con foldl tmb y agregar flip 
+
+descendientes :: Barbaro-> [Barbaro]
+descendientes barbarian= iterate descendiente barbarian
+
+--c)
+
+-- Se podría aplicar sinRepetidos sobre la lista de objetos? ¿Por qué?
+ 
+--Los objetos de barbaro son Funciones, las funciones no son comparables entre si. 
+--Si vemos que definimos a sinRepetidos con Eq a => vemos que se le pasa funciones comparables si o si 
+--Entonces la respuesta a la pregunta es NO, porque vemos que los objetos no son comparables entre si por ser funciones 
+
+--Y sobre el nombre de un bárbaro? ¿Por qué?
+
+--La respuesta a la pregunta es SI, porque el nombre de un barbaro es un string, que es una lista de chars
+--y por ser una lista de elementos comparables entre si se podria aplicar. 
