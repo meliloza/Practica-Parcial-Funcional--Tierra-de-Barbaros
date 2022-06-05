@@ -1,8 +1,13 @@
+
 module Library where
 import PdePreludat
 import Data.Char(toUpper)  --para poder usar la conversion de mayusculas en el punto 2) 
 import Data.Char(isUpper) --para poder usar punto 3) nos dice si una letra es mayuscula
 
+doble :: Number -> Number --no dar bola a esto 
+doble numero = numero + numero --no dar bola a esto 
+
+---------------------------------------------------------------------------------------------
 type Objetos= Barbaro->Barbaro
 
 data Barbaro= Barbaro{
